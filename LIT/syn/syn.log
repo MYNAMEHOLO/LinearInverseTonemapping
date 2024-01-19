@@ -1,0 +1,365 @@
+
+                            Design Compiler (R) NXT 
+
+                 Version Q-2019.12 for linux64 - Nov 26, 2019 
+
+                    Copyright (c) 1988 - 2019 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+            or distribution of this software is strictly prohibited.
+Initializing...
+Loading db file '/usr/cad/CBDK_IC_Contest_v2.1/SynopsysDC/db/slow.db'
+Loading db file '/usr/cad/CBDK_IC_Contest_v2.1/SynopsysDC/db/fast.db'
+Initializing gui preferences from file  /home/data_1/M11112092/.synopsys_dv_prefs.tcl
+#set variable
+#set lib for usr define
+#set your top_module name
+set lib LIT
+LIT
+set top_module LIT
+LIT
+#remove all designs
+remove_design -designs
+1
+#Read Design File
+if { [file exists "$lib"] } { sh rm -r $lib }
+sh mkdir $lib
+define_design_lib $lib -path ./$lib
+1
+#if you get lots of design , analyze and read it.
+analyze -library $lib -format verilog "../src/define.v                                        ../src/LIT.v "
+Running PRESTO HDLC
+Compiling source file ../src/define.v
+Compiling source file ../src/LIT.v
+Warning:  ../src/LIT.v:19: Parameter keyword used in local parameter declaration. (VER-329)
+Presto compilation completed successfully.
+Loading db file '/usr/cad/synopsys/synthesis/2019.12/libraries/syn/dw_foundation.sldb'
+1
+elaborate $top_module -architecture verilog -library $lib
+Loading db file '/usr/cad/synopsys/synthesis/2019.12/libraries/syn/gtech.db'
+Loading db file '/usr/cad/synopsys/synthesis/2019.12/libraries/syn/standard.sldb'
+  Loading link library 'slow'
+  Loading link library 'fast'
+  Loading link library 'gtech'
+Running PRESTO HDLC
+
+Inferred memory devices in process
+	in routine LIT line 118 in file
+		'../src/LIT.v'.
+===============================================================================
+|    Register Name    |   Type    | Width | Bus | MB | AR | AS | SR | SS | ST |
+===============================================================================
+|     LIT_out_reg     | Flip-flop |  16   |  Y  | N  | Y  | N  | N  | N  | N  |
+===============================================================================
+Presto compilation completed successfully. (LIT)
+Elaborated 1 design.
+Current design is now 'LIT'.
+1
+current_design $top_module
+Current design is 'LIT'.
+{LIT}
+link
+
+  Linking design 'LIT'
+  Using the following designs and libraries:
+  --------------------------------------------------------------------------
+  slow (library)              /usr/cad/CBDK_IC_Contest_v2.1/SynopsysDC/db/slow.db
+  fast (library)              /usr/cad/CBDK_IC_Contest_v2.1/SynopsysDC/db/fast.db
+  dw_foundation.sldb (library) /usr/cad/synopsys/synthesis/2019.12/libraries/syn/dw_foundation.sldb
+
+1
+#Setting Clock Constraints
+source -echo -verbose $top_module.sdc
+#Setting Clock Constraints
+create_clock -name clk              -period 15              -waveform {0 7.5} [get_ports clk]
+1
+set_dont_touch_network            [get_clocks clk]
+1
+set_fix_hold                      [get_clocks clk]
+1
+set_clock_uncertainty       0.1   [get_clocks clk]
+1
+set_clock_latency   -source 0     [get_clocks clk]
+1
+set_clock_latency           1     [get_clocks clk] 
+1
+set_input_transition        0.5   [get_clocks clk]
+1
+set_clock_transition        0.5   [all_clocks]
+1
+#Setting Design Environment
+set_operating_conditions -min fast  -max slow
+Using operating conditions 'slow' found in library 'slow'.
+Using operating conditions 'fast' found in library 'fast'.
+1
+#set_wire_load_model -name tsmc13_wl10 -library slow
+set_driving_cell -library slow        -lib_cell BUFX2        -pin {Y}  {clk rst}
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+1
+set_driving_cell -library slow    -lib_cell DFFX2      -pin {Q}  [remove_from_collection [all_inputs] {clk rst}]
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+Warning: Design rule attributes from the driving cell will be
+	set on the port. (UID-401)
+1
+set_load  [load_of "slow/DFFX1/D"]       [all_outputs]
+1
+set_input_delay   -max 5    -clock clk   [remove_from_collection [all_inputs] {clk rst}]
+1
+set_input_delay   -min 0.2  -clock clk   [remove_from_collection [all_inputs] {clk rst}]
+1
+set_input_delay   -max 1    -clock clk   {rst}
+1
+set_input_delay   -min 0.2  -clock clk   {rst}
+1
+set_output_delay  -max 5    -clock clk   [all_outputs]
+1
+set_output_delay  -min 0.2  -clock clk   [all_outputs]
+1
+#Setting recovery removal timing check
+set enable_recovery_removal_arcs true
+true
+#Setting Area Constraint
+set_max_area        0
+1
+#Setting DRC Constraint
+set_max_fanout      20    [all_inputs]
+1
+set_max_transition  0.3  [all_inputs]
+1
+1
+#Synthesis all design
+#compile -boundary_optimization -map_effort high -area_effort high
+compile_ultra -incremental
+Information: Performing power optimization. (PWR-850)
+Alib files are up-to-date.
+Information: Evaluating DesignWare library utilization. (UISN-27)
+
+============================================================================
+| DesignWare Building Block Library  |         Version         | Available |
+============================================================================
+| Basic DW Building Blocks           | Q-2019.12-DWBB_201912.0 |     *     |
+| Licensed DW Building Blocks        | Q-2019.12-DWBB_201912.0 |     *     |
+============================================================================
+
+
+Information: There are 1 potential problems in your design. Please run 'check_design' for more information. (LINT-99)
+
+
+Loaded alib file './alib-52/slow.db.alib'
+Loaded alib file './alib-52/fast.db.alib'
+Warning: Operating condition slow set on design LIT has different process,
+voltage and temperatures parameters than the parameters at which target library 
+fast is characterized. Delays may be inaccurate as a result. (OPT-998)
+Information: State dependent leakage is now switched from on to off.
+
+  Beginning Pass 1 Mapping  (Incremental)
+  ------------------------
+  Processing 'LIT'
+
+  Updating timing information
+Information: Updating design information... (UID-85)
+Information: The library cell 'HOLDX1' in the library 'slow' is not characterized for internal power. (PWR-536)
+Information: The target library(s) contains cell(s), other than black boxes, that are not characterized for internal power. (PWR-24)
+  Mapping 'LIT_DP_OP_17_122_7003_0'
+  Mapping 'LIT_DW_cmp_0'
+  Mapping 'LIT_DW_cmp_1'
+  Mapping 'LIT_DW_cmp_2'
+  Mapping 'LIT_DW_cmp_3'
+  Mapping 'LIT_DW_cmp_4'
+  Mapping 'LIT_DW_cmp_5'
+  Mapping 'LIT_DW_cmp_6'
+  Mapping 'LIT_DW_cmp_7'
+  Mapping 'LIT_DW_cmp_8'
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:00:02    6350.0      2.26       4.4      53.8                           5142770.0000      0.00  
+    0:00:02    6350.0      2.26       4.4      53.8                           5142770.0000      0.00  
+
+  Beginning Mapping Optimizations  (Ultra High effort)  (Incremental)
+  -------------------------------
+Information: Added key list 'DesignWare' to design 'LIT'. (DDB-72)
+
+  Beginning Incremental Implementation Selection
+  ----------------------------------------------
+  Mapping 'LIT_DP_OP_17_122_7003_1'
+    0:00:03   13910.2      1.06       2.2      33.9                           15987850.0000      0.00  
+    0:00:03   13900.0      1.05       3.2      33.9                           15977296.0000      0.00  
+    0:00:03   13900.0      1.05       3.2      33.9                           15977296.0000      0.00  
+    0:00:03   13917.0      1.02       2.1      34.2                           15991272.0000      0.00  
+  Global Optimization (Phase 1)
+  Global Optimization (Phase 2)
+  Global Optimization (Phase 3)
+  Global Optimization (Phase 4)
+  Global Optimization (Phase 5)
+
+
+
+  Beginning Delay Optimization Phase
+  ----------------------------------
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:00:03   13642.0      0.00       0.0      33.6                           15752076.0000      0.00  
+    0:00:03   13642.0      0.00       0.0      33.6                           15752076.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+
+  Beginning Delay Optimization
+  ----------------------------
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12618.5      0.00       0.0      32.2                           14716237.0000      0.00  
+    0:00:03   12455.5      0.00       0.0      32.2                           14710967.0000      0.00  
+
+
+  Beginning Design Rule Fixing  (max_transition)  (max_fanout)  (max_capacitance)
+  ----------------------------
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:00:03   12455.5      0.00       0.0      32.2                           14710967.0000      0.00  
+    0:00:03   12204.3      0.00       0.0       0.0                           14380252.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+
+
+  Beginning Leakage Power Optimization  (max_leakage_power 0)
+  ------------------------------------
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:00:03   12102.5      0.00       0.0       0.0                           14299117.0000      0.00  
+    0:00:03   12095.7      0.00       0.0       0.0                           14297088.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+
+                                  TOTAL                                                            
+   ELAPSED            WORST NEG   SETUP    DESIGN                              LEAKAGE   MIN DELAY 
+    TIME      AREA      SLACK     COST    RULE COST         ENDPOINT            POWER      COST    
+  --------- --------- --------- --------- --------- ------------------------- --------- -----------
+    0:00:03   12071.9      0.00       0.0       0.0                           14282535.0000      0.00  
+    0:00:04   12063.4      0.00       0.0       0.0                           14278603.0000      0.00  
+    0:00:04    6499.3      0.00       0.0       0.0                           6299972.0000      0.00  
+    0:00:04    6499.3      0.00       0.0       0.0                           6299972.0000      0.00  
+    0:00:04    6499.3      0.00       0.0       0.0                           6299972.0000      0.00  
+    0:00:04    6499.3      0.00       0.0       0.0                           6299972.0000      0.00  
+    0:00:04    6338.1      0.00       0.0       0.0                           6082964.0000      0.00  
+Loading db file '/usr/cad/CBDK_IC_Contest_v2.1/SynopsysDC/db/slow.db'
+Loading db file '/usr/cad/CBDK_IC_Contest_v2.1/SynopsysDC/db/fast.db'
+
+
+Note: Symbol # after min delay cost means estimated hold TNS across all active scenarios 
+
+
+  Optimization Complete
+  ---------------------
+Information: State dependent leakage is now switched from off to on.
+Information: Propagating switching activity (low effort zero delay simulation). (PWR-6)
+1
+#set_optimize_registers true -design $top_module
+#compile_ultra -retime
+#optimize_netlist -area
+#remove unconnected ports
+remove_unconnected_ports     -blast_buses [get_cells -hierarchical *]
+1
+#change naming rules
+set bus_inference_style {%s[%d]}
+%s[%d]
+set bus_naming_style {%s[%d]}
+%s[%d]
+set hdlout_internal_busses true
+true
+change_names -hierarchy -rule verilog
+1
+define_name_rules name_rule       -allowed {a-z A-Z 0-9 _}       -max_length 255 -type cell
+1
+define_name_rules name_rule       -allowed {a-z A-Z 0-9 _[]}       -max_length 255 -type net
+1
+define_name_rules name_rule       -map {{"\\*cell\\*" "cell"}}
+1
+define_name_rules name_rule       -case_insensitive
+1
+change_names -hierarchy -rules name_rule
+1
+#remove unconnected ports
+remove_unconnected_ports     -blast_buses [get_cells -hierarchical *]
+1
+#Write out ddc
+set ddc_name ""
+append ddc_name $top_module ".ddc"
+LIT.ddc
+write -format ddc     -hierarchy -output $ddc_name
+Writing ddc file 'LIT.ddc'.
+1
+#Write out gate-level netlist
+set syn_v_name ""
+append syn_v_name $top_module "_syn.v" 
+LIT_syn.v
+write -format verilog -hierarchy -output $syn_v_name
+Writing verilog file '/home/data_1/M11112092/IP_test/LIT/syn/LIT_syn.v'.
+1
+#Write out sdf file
+set sdf_name ""
+append sdf_name "./" $top_module "_syn.sdf"
+./LIT_syn.sdf
+write_sdf -version 1.0 -context verilog          -load_delay net $sdf_name
+Information: Writing timing information to file '/home/data_1/M11112092/IP_test/LIT/syn/LIT_syn.sdf'. (WT-3)
+Information: Updating design information... (UID-85)
+1
+#Write out area log
+report_area > area.log
+#Write out timing log
+report_timing > timing.log
+#Write out qor log
+report_qor > Design_syn.qor
+exit
+
+Thank you...
